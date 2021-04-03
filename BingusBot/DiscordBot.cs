@@ -86,7 +86,7 @@ namespace BingusBot
                 {
                     _commands.RegisterCommands(t);
                 }
-                _logger.LogInformation($"Loaded {typeList.Length} modules");
+                _logger.LogInformation($"Loaded {typeList.Length} module(s)");
 
                 RunAsync(args).Wait();
             }
@@ -104,8 +104,7 @@ namespace BingusBot
 
             while (!_cancellationTokenSource.IsCancellationRequested)
             {
-                await Task.Delay(TimeSpan.FromSeconds(10));
-                _cancellationTokenSource.Cancel();
+                await Task.Delay(TimeSpan.FromMinutes(1));
             }
 
             _logger.LogInformation("Disconnecting from discord");
