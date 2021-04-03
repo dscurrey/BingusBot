@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using BingusBot.Commands;
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.Interactivity;
@@ -31,6 +33,7 @@ namespace BingusBot
         {
             try
             {
+                _cancellationTokenSource = new CancellationTokenSource();
                 _logger.LogInformation("Bingus Bot loading...");
                 var assembly = Assembly.GetExecutingAssembly();
                 var fileVersionInfo = FileVersionInfo.GetVersionInfo(assembly.Location);
@@ -72,8 +75,18 @@ namespace BingusBot
                         Dependencies = deps
                     }
                 );
-            
-                // TODO: Load Commands
+
+                var type = typeof(IModule);
+                var types = AppDomain.CurrentDomain.GetAssemblies()
+                    .SelectMany(s => s.GetTypes())
+                    .Where(p => type.IsAssignableFrom(p) && !p.IsInterface);
+
+                var typeList = types as Type[] ?? types.ToArray();
+                foreach (var t in typeList)
+                {
+                    _commands.RegisterCommands(t);
+                }
+                _logger.LogInformation($"Loaded {typeList.Length} modules");
 
                 RunAsync(args).Wait();
             }
@@ -91,14 +104,17 @@ namespace BingusBot
 
             while (!_cancellationTokenSource.IsCancellationRequested)
             {
-                await Task.Delay(TimeSpan.FromSeconds(30));
+                await Task.Delay(TimeSpan.FromSeconds(10));
+                _cancellationTokenSource.Cancel();
             }
+
+            _logger.LogInformation("Disconnecting from discord");
+            await _discord.DisconnectAsync();
         }
 
         private DependencyCollection BuildDeps()
         {
             using var deps = new DependencyCollectionBuilder();
-
             deps.AddInstance(_interactivity)
                 .AddInstance(_cancellationTokenSource)
                 .AddInstance(_config)
