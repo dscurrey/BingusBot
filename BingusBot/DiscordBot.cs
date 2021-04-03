@@ -64,11 +64,12 @@ namespace BingusBot
                 _logger.LogInformation("Loaded config");
             
                 _logger.LogInformation("Creating discord client");
+                _logger.LogCritical(GetConfigToken());
                 _discord = new DiscordClient
                 (
                     new DiscordConfiguration
                     {
-                        Token = _config.GetValue<string>("discord:token"),
+                        Token = GetConfigToken(),
                         TokenType = TokenType.Bot
                     }
                 );
@@ -143,6 +144,11 @@ namespace BingusBot
                 .AddInstance(_discord);
 
             return deps.Build();
+        }
+
+        private string GetConfigToken()
+        {
+            return Environment.GetEnvironmentVariable("DISCORD_TOKEN") ?? _config.GetValue<string>("discord:token");
         }
     }
 }
