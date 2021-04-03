@@ -8,8 +8,16 @@ using DSharpPlus.Interactivity;
 
 namespace BingusBot.Commands
 {
+    /// <summary>
+    /// Commands module for basic (test) commands
+    /// </summary>
     public class BasicCommandsModule : IModule
     {
+        /// <summary>
+        /// Ping command for testing basic functions
+        /// </summary>
+        /// <param name="context">Command context</param>
+        /// <returns>Task</returns>
         [Command("ping")]
         [Description("Test command to test if the bot is running")]
         public async Task Ping(CommandContext context)
@@ -20,6 +28,11 @@ namespace BingusBot.Commands
             await context.RespondAsync($"BingusBot v{fileVersionInfo.FileVersion}");
         }
 
+        /// <summary>
+        /// Interaction command for testing basic interactivity
+        /// </summary>
+        /// <param name="context">Context</param>
+        /// <returns>Task</returns>
         [Command("interact")]
         [Description("Simple command to test interaction")]
         public async Task Interact(CommandContext context)
@@ -27,8 +40,8 @@ namespace BingusBot.Commands
             await context.TriggerTypingAsync();
             await context.RespondAsync("How are you?");
 
-            var intr = context.Client.GetInteractivityModule();
-            var reminderContent = await intr.WaitForMessageAsync
+            var interactive = context.Client.GetInteractivityModule();
+            var reminderContent = await interactive.WaitForMessageAsync
             (
                 c => c.Author.Id == context.Message.Author.Id, TimeSpan.FromSeconds(30)
             );

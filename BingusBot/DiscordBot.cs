@@ -14,26 +14,44 @@ using Microsoft.Extensions.Logging;
 
 namespace BingusBot
 {
+    /// <summary>
+    /// Class containing the discord bot
+    /// </summary>
     public class DiscordBot
     {
-        private CancellationTokenSource _cancellationTokenSource { get; set; }
+        private CancellationTokenSource CancellationTokenSource { get; set; }
         private IConfigurationRoot _config;
         private DiscordClient _discord;
         private CommandsNextModule _commands;
         private InteractivityModule _interactivity;
         private readonly ILogger<DiscordBot> _logger;
+        
+        /// <summary>
+        /// Constructor for the discord bot
+        /// </summary>
+        /// <param name="logger">DI logger</param>
         public DiscordBot(ILogger<DiscordBot> logger)
         {
             _logger = logger;
         }
         
+        /// <summary>
+        /// Starts the bot
+        /// </summary>
+        /// <param name="args">Any arguments passed</param>
+        /// <returns>Task</returns>
         public async Task Run(string[] args) => await InitBot(args);
 
-        async Task InitBot(string[] args)
+        /// <summary>
+        /// Initialises and runs the bot.
+        /// </summary>
+        /// <param name="args">Any arguments passed</param>
+        /// <returns>Task</returns>
+        private async Task InitBot(string[] args)
         {
             try
             {
-                _cancellationTokenSource = new CancellationTokenSource();
+                CancellationTokenSource = new CancellationTokenSource();
                 _logger.LogInformation("Bingus Bot loading...");
                 var assembly = Assembly.GetExecutingAssembly();
                 var fileVersionInfo = FileVersionInfo.GetVersionInfo(assembly.Location);
@@ -41,7 +59,7 @@ namespace BingusBot
 
                 _config = new ConfigurationBuilder()
                     .SetBasePath(Directory.GetCurrentDirectory())
-                    .AddJsonFile("config.json", optional: false, reloadOnChange: true)
+                    .AddJsonFile("config.json", false, true)
                     .Build();
                 _logger.LogInformation("Loaded config");
             
@@ -96,13 +114,18 @@ namespace BingusBot
             }
         }
 
-        async Task RunAsync(string[] args)
+        /// <summary>
+        /// Runs the bot asynchronously
+        /// </summary>
+        /// <param name="args">Any passed args</param>
+        /// <returns>Task</returns>
+        private async Task RunAsync(string[] args)
         {
             _logger.LogInformation("Connecting to discord");
             await _discord.ConnectAsync();
             _logger.LogInformation("Connection established with discord");
 
-            while (!_cancellationTokenSource.IsCancellationRequested)
+            while (!CancellationTokenSource.IsCancellationRequested)
             {
                 await Task.Delay(TimeSpan.FromMinutes(1));
             }
@@ -115,7 +138,7 @@ namespace BingusBot
         {
             using var deps = new DependencyCollectionBuilder();
             deps.AddInstance(_interactivity)
-                .AddInstance(_cancellationTokenSource)
+                .AddInstance(CancellationTokenSource)
                 .AddInstance(_config)
                 .AddInstance(_discord);
 

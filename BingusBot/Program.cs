@@ -6,21 +6,21 @@ using LogLevel = Microsoft.Extensions.Logging.LogLevel;
 
 namespace BingusBot
 {
-    class Program
+    static class Program
     {
         static async Task Main(string[] args)
         {
             var services = new ServiceCollection();
             ConfigureServices(services);
 
-            using (ServiceProvider serviceProvider = services.BuildServiceProvider())
+            await using (var serviceProvider = services.BuildServiceProvider())
             {
-                DiscordBot bot = serviceProvider.GetService<DiscordBot>();
+                var bot = serviceProvider.GetService<DiscordBot>();
                 if (bot != null) await bot.Run(args);
             }
         }
 
-        private static void ConfigureServices(ServiceCollection services)
+        private static void ConfigureServices(IServiceCollection services)
         {
             services.AddSingleton<DiscordBot>();
             services.AddLogging

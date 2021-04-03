@@ -3,6 +3,6 @@
     "token": "",
     "appId": "",
     "appSecret": "",
-    "CommandPrefix": "!"
+    "CommandPrefix": "$"
   }
 }
