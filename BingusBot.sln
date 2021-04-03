@@ -2,6 +2,8 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BingusBot", "BingusBot\BingusBot.csproj", "{60814100-610C-4BE8-9158-7D679153255D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests.BingusBot", "Tests.BingusBot\Tests.BingusBot.csproj", "{9237192C-DFEC-491B-91EF-924F75FF62C1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -12,5 +14,9 @@ Global
 		{60814100-610C-4BE8-9158-7D679153255D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{60814100-610C-4BE8-9158-7D679153255D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{60814100-610C-4BE8-9158-7D679153255D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9237192C-DFEC-491B-91EF-924F75FF62C1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9237192C-DFEC-491B-91EF-924F75FF62C1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9237192C-DFEC-491B-91EF-924F75FF62C1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9237192C-DFEC-491B-91EF-924F75FF62C1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
