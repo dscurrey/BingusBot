@@ -2,13 +2,12 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NLog.Web;
-using LogLevel = Microsoft.Extensions.Logging.LogLevel;
 
 namespace BingusBot
 {
-    static class Program
+    internal static class Program
     {
-        static async Task Main(string[] args)
+        private static async Task Main(string[] args)
         {
             var services = new ServiceCollection();
             ConfigureServices(services);
@@ -23,6 +22,7 @@ namespace BingusBot
         private static void ConfigureServices(IServiceCollection services)
         {
             services.AddSingleton<DiscordBot>();
+
             services.AddLogging
             (
                 builder =>
