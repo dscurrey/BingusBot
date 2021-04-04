@@ -1,8 +1,11 @@
 ﻿using System;
+using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
+using DSharpPlus.Entities;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -41,10 +44,9 @@ namespace BingusBot.Commands
 
             var url = "mc.dcurrey.co.uk";
             var key = CacheKeys.MinecraftServerKey + url;
-            MinecraftStatus minecraftStatus;
 
             _logger.LogInformation("Fetching bingus server status");
-            var inCache = _cache.TryGetValue(key, out minecraftStatus);
+            var inCache = _cache.TryGetValue(key, out MinecraftStatus minecraftStatus);
             if (!inCache)
             {
                 _logger.LogInformation("Contacting minecraft api");
@@ -53,9 +55,18 @@ namespace BingusBot.Commands
                 var builder = new UriBuilder("https://mcapi.us/server/status");
                 builder.Query = $"ip={url}";
                 var resp = await client.GetAsync(builder.Uri);
-                var content = await resp.Content.ReadAsStringAsync();
-                minecraftStatus = JsonConvert.DeserializeObject<MinecraftStatus>(content);
-                _cache.Set(key, minecraftStatus, TimeSpan.FromMinutes(1));
+                if (resp.IsSuccessStatusCode)
+                {
+                    var content = await resp.Content.ReadAsStringAsync();
+                    minecraftStatus = JsonConvert.DeserializeObject<MinecraftStatus>(content);
+                    _cache.Set(key, minecraftStatus, TimeSpan.FromMinutes(1));
+                }
+                else
+                {
+                    _logger.LogError($"Error {resp.StatusCode} occurred when contacting mcapi");
+                    await context.RespondAsync("An error occured, check the log.");
+                    return;
+                }
             }
 
             await SendMinecraftMessage(minecraftStatus, context);
@@ -63,17 +74,49 @@ namespace BingusBot.Commands
 
         private async Task SendMinecraftMessage(MinecraftStatus minecraftStatus, CommandContext context)
         {
-            var msgText = "";
-            if (minecraftStatus.Online)
-                msgText = "Bingus Bois is Online\n" +
-                          $"Server: {minecraftStatus.Server.Name}\n" +
-                          $"Players: {minecraftStatus.Players.Online} of {minecraftStatus.Players.Max}\n";
-            foreach (var player in minecraftStatus.Players.Sample) msgText += $"{player.Name} ";
+            _logger.LogInformation("Sending minecraft server status message");
+            var embedBuilder = new DiscordEmbedBuilder()
+                .WithTitle("Minecraft Server Status")
+                .WithDescription("Fetched for mc.dcurrey.co.uk")
+                .WithFooter("Fetched using mcapi.us");
 
-            if (msgText == "")
-                await context.RespondAsync("Server could not be found");
-            else
-                await context.RespondAsync(msgText);
+            if (minecraftStatus.Online)
+            {
+                embedBuilder.AddField("Status", "Online")
+                    .AddField("Server Version", minecraftStatus.Server.Name)
+                    .AddField("Players", $"{minecraftStatus.Players.Online} of {minecraftStatus.Players.Max}");
+                if (minecraftStatus.Players.Sample.Count > 0)
+                {
+                    var players = minecraftStatus.Players.Sample.Aggregate
+                        ("", (current, player) => current + $"{player.Name} ");
+                    embedBuilder.AddField("Currently Online", players);
+                }
+            }
+
+
+            await context.RespondWithFileAsync(ConvertToPng(minecraftStatus.Favicon));
+            await context.RespondAsync("", embed: embedBuilder.Build());
+        }
+
+        private string ConvertToPng(string base64String)
+        {
+            base64String = base64String.Substring(base64String.IndexOf(',') + 1);
+            try
+            {
+                var imgBytes = Convert.FromBase64String(base64String);
+                using (var imageFile = new FileStream(@"favicon.png", FileMode.Create))
+                {
+                    imageFile.Write(imgBytes, 0, imgBytes.Length);
+                    imageFile.Flush();
+                }
+
+                return @"favicon.png";
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "An error ocurred");
+                throw;
+            }
         }
     }
 }
