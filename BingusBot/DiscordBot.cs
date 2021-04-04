@@ -10,40 +10,48 @@ using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.Interactivity;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using NLog.Web;
+using LogLevel = Microsoft.Extensions.Logging.LogLevel;
 
 namespace BingusBot
 {
     /// <summary>
-    /// Class containing the discord bot
+    ///     Class containing the discord bot
     /// </summary>
     public class DiscordBot
     {
-        private CancellationTokenSource CancellationTokenSource { get; set; }
+        private readonly ILogger<DiscordBot> _logger;
+        private readonly ServiceCollection _services = new();
+        private CommandsNextModule _commands;
         private IConfigurationRoot _config;
         private DiscordClient _discord;
-        private CommandsNextModule _commands;
         private InteractivityModule _interactivity;
-        private readonly ILogger<DiscordBot> _logger;
-        
+
         /// <summary>
-        /// Constructor for the discord bot
+        ///     Constructor for the discord bot
         /// </summary>
         /// <param name="logger">DI logger</param>
         public DiscordBot(ILogger<DiscordBot> logger)
         {
             _logger = logger;
         }
-        
+
+        private CancellationTokenSource CancellationTokenSource { get; set; }
+
         /// <summary>
-        /// Starts the bot
+        ///     Starts the bot
         /// </summary>
         /// <param name="args">Any arguments passed</param>
         /// <returns>Task</returns>
-        public async Task Run(string[] args) => await InitBot(args);
+        public async Task Run(string[] args)
+        {
+            await InitBot(args);
+        }
 
         /// <summary>
-        /// Initialises and runs the bot.
+        ///     Initialises and runs the bot.
         /// </summary>
         /// <param name="args">Any arguments passed</param>
         /// <returns>Task</returns>
@@ -62,9 +70,8 @@ namespace BingusBot
                     .AddJsonFile("config.json", false, true)
                     .Build();
                 _logger.LogInformation("Loaded config");
-            
+
                 _logger.LogInformation("Creating discord client");
-                _logger.LogCritical(GetConfigToken());
                 _discord = new DiscordClient
                 (
                     new DiscordConfiguration
@@ -84,6 +91,7 @@ namespace BingusBot
                     }
                 );
 
+                ConfigureServices(_services);
                 var deps = BuildDeps();
 
                 _commands = _discord.UseCommandsNext
@@ -101,10 +109,7 @@ namespace BingusBot
                     .Where(p => type.IsAssignableFrom(p) && !p.IsInterface);
 
                 var typeList = types as Type[] ?? types.ToArray();
-                foreach (var t in typeList)
-                {
-                    _commands.RegisterCommands(t);
-                }
+                foreach (var t in typeList) _commands.RegisterCommands(t);
                 _logger.LogInformation($"Loaded {typeList.Length} module(s)");
 
                 RunAsync(args).Wait();
@@ -116,7 +121,7 @@ namespace BingusBot
         }
 
         /// <summary>
-        /// Runs the bot asynchronously
+        ///     Runs the bot asynchronously
         /// </summary>
         /// <param name="args">Any passed args</param>
         /// <returns>Task</returns>
@@ -126,10 +131,7 @@ namespace BingusBot
             await _discord.ConnectAsync();
             _logger.LogInformation("Connection established with discord");
 
-            while (!CancellationTokenSource.IsCancellationRequested)
-            {
-                await Task.Delay(TimeSpan.FromMinutes(1));
-            }
+            while (!CancellationTokenSource.IsCancellationRequested) await Task.Delay(-1);
 
             _logger.LogInformation("Disconnecting from discord");
             await _discord.DisconnectAsync();
@@ -141,14 +143,27 @@ namespace BingusBot
             deps.AddInstance(_interactivity)
                 .AddInstance(CancellationTokenSource)
                 .AddInstance(_config)
-                .AddInstance(_discord);
-
+                .AddInstance(_discord)
+                .AddInstance(_services.BuildServiceProvider());
             return deps.Build();
         }
 
         private string GetConfigToken()
         {
             return Environment.GetEnvironmentVariable("DISCORD_TOKEN") ?? _config.GetValue<string>("discord:token");
+        }
+
+        private void ConfigureServices(IServiceCollection services)
+        {
+            services.AddLogging
+            (
+                builder =>
+                {
+                    builder.SetMinimumLevel(LogLevel.Debug);
+                    builder.AddNLog("nlog.config");
+                }
+            );
+            services.AddMemoryCache();
         }
     }
 }

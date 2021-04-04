@@ -5,16 +5,28 @@ using System.Threading.Tasks;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Interactivity;
+using Microsoft.Extensions.Configuration;
 
 namespace BingusBot.Commands
 {
     /// <summary>
-    /// Commands module for basic (test) commands
+    ///     Commands module for basic (test) commands
     /// </summary>
     public class BasicCommandsModule : IModule
     {
+        private IConfigurationRoot _config;
+
         /// <summary>
-        /// Ping command for testing basic functions
+        ///     Constructor for Basic Commands module with injected services
+        /// </summary>
+        /// <param name="config"></param>
+        public BasicCommandsModule(IConfigurationRoot config)
+        {
+            _config = config;
+        }
+
+        /// <summary>
+        ///     Ping command for testing basic functions
         /// </summary>
         /// <param name="context">Command context</param>
         /// <returns>Task</returns>
@@ -29,7 +41,7 @@ namespace BingusBot.Commands
         }
 
         /// <summary>
-        /// Interaction command for testing basic interactivity
+        ///     Interaction command for testing basic interactivity
         /// </summary>
         /// <param name="context">Context</param>
         /// <returns>Task</returns>
