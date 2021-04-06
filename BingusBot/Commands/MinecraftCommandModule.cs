@@ -32,18 +32,20 @@ namespace BingusBot.Commands
         }
 
         /// <summary>
-        ///     Command for pinging BingusBois server, returning info
+        ///     Command for getting info about a minecraft server
         /// </summary>
         /// <param name="context"></param>
+        /// <param name="serverIp">The address of the server to be checked</param>
         /// <returns></returns>
-        [Command("bing")]
-        [Description("Pings the bingus Minecraft server")]
-        public async Task Bingus(CommandContext context)
+        [Command("mcstatus")]
+        [Description("Pings a Minecraft server")]
+        public async Task ServerStatus(CommandContext context,
+            [Description("The IP for the server you wish to ping")]
+            string serverIp)
         {
             await context.TriggerTypingAsync();
 
-            var url = "mc.dcurrey.co.uk";
-            var key = CacheKeys.MinecraftServerKey + url;
+            var key = CacheKeys.MinecraftServerKey + serverIp;
 
             _logger.LogInformation("Fetching bingus server status");
             var inCache = _cache.TryGetValue(key, out MinecraftStatus minecraftStatus);
@@ -53,7 +55,7 @@ namespace BingusBot.Commands
                 var client = new HttpClient();
                 client.Timeout = TimeSpan.FromSeconds(30);
                 var builder = new UriBuilder("https://mcapi.us/server/status");
-                builder.Query = $"ip={url}";
+                builder.Query = $"ip={serverIp}";
                 var resp = await client.GetAsync(builder.Uri);
                 if (resp.IsSuccessStatusCode)
                 {
@@ -63,38 +65,57 @@ namespace BingusBot.Commands
                 }
                 else
                 {
-                    _logger.LogError($"Error {resp.StatusCode} occurred when contacting mcapi");
+                    _logger.LogError("Error {Status} occurred when contacting mcapi", resp.StatusCode.ToString());
                     await context.RespondAsync("An error occured, check the log.");
                     return;
                 }
             }
 
-            await SendMinecraftMessage(minecraftStatus, context);
+            await SendMinecraftMessage(serverIp, minecraftStatus, context);
         }
 
-        private async Task SendMinecraftMessage(MinecraftStatus minecraftStatus, CommandContext context)
+        /// <summary>
+        ///     Command for pinging BingusBois server, returning info
+        /// </summary>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        [Command("bing")]
+        [Description("Pings the bingus Minecraft server")]
+        public async Task Bingus(CommandContext context)
+        {
+            await ServerStatus(context, "mc.dcurrey.co.uk");
+        }
+
+        private async Task SendMinecraftMessage(string serverIp,
+            MinecraftStatus minecraftStatus,
+            CommandContext context)
         {
             _logger.LogInformation("Sending minecraft server status message");
             var embedBuilder = new DiscordEmbedBuilder()
                 .WithTitle("Minecraft Server Status")
-                .WithDescription("Fetched for mc.dcurrey.co.uk")
+                .WithDescription($"Fetched for {serverIp}")
                 .WithFooter("Fetched using mcapi.us");
 
             if (minecraftStatus.Online)
             {
                 embedBuilder.AddField("Status", "Online")
                     .AddField("Server Version", minecraftStatus.Server.Name)
-                    .AddField("Players", $"{minecraftStatus.Players.Online} of {minecraftStatus.Players.Max}");
+                    .AddField("Players", $"{minecraftStatus.Players.Now} of {minecraftStatus.Players.Max}");
                 if (minecraftStatus.Players.Sample.Count > 0)
                 {
                     var players = minecraftStatus.Players.Sample.Aggregate
                         ("", (current, player) => current + $"{player.Name} ");
                     embedBuilder.AddField("Currently Online", players);
                 }
+
+                await context.RespondWithFileAsync(ConvertToPng(minecraftStatus.Favicon));
+            }
+            else
+            {
+                embedBuilder.AddField("Status", "Offline");
+                embedBuilder.AddField("Error", minecraftStatus.Error);
             }
 
-
-            await context.RespondWithFileAsync(ConvertToPng(minecraftStatus.Favicon));
             await context.RespondAsync("", embed: embedBuilder.Build());
         }
 

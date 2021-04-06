@@ -71,7 +71,7 @@ namespace BingusBot
         /// <summary>
         ///     No. of players online
         /// </summary>
-        public int Online { get; set; }
+        public int Now { get; set; }
 
         /// <summary>
         ///     Sample of online players
