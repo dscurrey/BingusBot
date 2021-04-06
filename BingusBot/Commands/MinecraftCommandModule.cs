@@ -84,17 +84,20 @@ namespace BingusBot.Commands
             {
                 embedBuilder.AddField("Status", "Online")
                     .AddField("Server Version", minecraftStatus.Server.Name)
-                    .AddField("Players", $"{minecraftStatus.Players.Online} of {minecraftStatus.Players.Max}");
+                    .AddField("Players", $"{minecraftStatus.Players.Now} of {minecraftStatus.Players.Max}");
                 if (minecraftStatus.Players.Sample.Count > 0)
                 {
                     var players = minecraftStatus.Players.Sample.Aggregate
                         ("", (current, player) => current + $"{player.Name} ");
                     embedBuilder.AddField("Currently Online", players);
                 }
+                await context.RespondWithFileAsync(ConvertToPng(minecraftStatus.Favicon));
             }
-
-
-            await context.RespondWithFileAsync(ConvertToPng(minecraftStatus.Favicon));
+            else
+            {
+                embedBuilder.AddField("Status", "Offline");
+                embedBuilder.AddField("Error", minecraftStatus.Error);
+            }
             await context.RespondAsync("", embed: embedBuilder.Build());
         }
 
