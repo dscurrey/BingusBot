@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace BingusBot
+namespace BingusBot.Models
 {
     /// <summary>
     ///     Model Representing DTO for Minecraft Server Status
