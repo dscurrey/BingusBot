@@ -19,7 +19,7 @@ namespace BingusBot2
             (
                 new DiscordConfiguration
                 {
-                    Token = "***REMOVED***",
+                    Token = "",
                     TokenType = TokenType.Bot,
                     Intents = DiscordIntents.AllUnprivileged
                 }
