@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Reflection;
 using System.Threading.Tasks;
-using DSharpPlus;
+using DSharpPlusNextGen;
+using DSharpPlusNextGen.CommandsNext;
 
 namespace BingusBot2
 {
@@ -17,11 +19,22 @@ namespace BingusBot2
             (
                 new DiscordConfiguration
                 {
-                    Token = "",
+                    Token = "***REMOVED***",
                     TokenType = TokenType.Bot,
                     Intents = DiscordIntents.AllUnprivileged
                 }
             );
+
+            var commands = discord.UseCommandsNext(new CommandsNextConfiguration
+            {
+                StringPrefixes = new []{ "$" }
+            });
+            
+            // Loads all commands
+            commands.RegisterCommands(Assembly.GetExecutingAssembly());
+
+            await discord.ConnectAsync();
+            await Task.Delay(-1);
         }
     }
 }
