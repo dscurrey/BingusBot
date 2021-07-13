@@ -4,6 +4,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BingusBot", "BingusBot\Bing
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests.BingusBot", "Tests.BingusBot\Tests.BingusBot.csproj", "{9237192C-DFEC-491B-91EF-924F75FF62C1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BingusBot2", "BingusBot2\BingusBot2.csproj", "{C3332ACF-CEB4-4425-A5D4-6F82E4B1B840}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,5 +20,9 @@ Global
 		{9237192C-DFEC-491B-91EF-924F75FF62C1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9237192C-DFEC-491B-91EF-924F75FF62C1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9237192C-DFEC-491B-91EF-924F75FF62C1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C3332ACF-CEB4-4425-A5D4-6F82E4B1B840}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C3332ACF-CEB4-4425-A5D4-6F82E4B1B840}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C3332ACF-CEB4-4425-A5D4-6F82E4B1B840}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C3332ACF-CEB4-4425-A5D4-6F82E4B1B840}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
